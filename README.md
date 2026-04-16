@@ -13,26 +13,26 @@ A modern calendar and permit management application built with React, TypeScript
 
 ## Features
 
-### Calendar Views
+### 📅 Calendar Views
 - **Agenda View** - Sequential list of upcoming events
 - **Day View** - Detailed hourly breakdown for a single day
 - **Week View** - 7-day calendar overview
 - **Month View** - Full month grid with event indicators
 - **Year View** - Yearly overview of events
 
-### Permit System
+### 📋 Permit System
 - **Request Permits** - Submit appointment requests to team members
 - **Approve/Reject** - Accept or cancel permit requests
 - **Schedule from Permits** - Create calendar events directly from permit requests
 - **Track Status** - Monitor pending, accepted, and cancelled permits
 
-### Team Management
+### 👥 Team Management
 - **Groups** - Organize teams and departments
 - **Members** - Add team members with role-based access
 - **Roles** - Admin or Member roles with appropriate permissions
 - **Personal Events** - Toggle visibility of personal calendar events
 
-### Customization
+### 🎨 Customization
 - **Dark/Light Mode** - Theme toggle for comfortable viewing
 - **Category Filtering** - Filter events by category
 - **12/24 Hour Format** - Choose your preferred time format
@@ -144,3 +144,6 @@ The optimized build will be in the `dist/` directory.
 This project is provided as-is. Modify and use as needed.
 
 ---
+
+**Made with ❤️**
+
