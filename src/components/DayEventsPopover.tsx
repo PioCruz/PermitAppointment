@@ -13,7 +13,6 @@ interface DayEventsPopoverProps {
   onSelectEvent: (event: CalendarEvent) => void;
 }
 
-// Feature: modal-style popover that shows all events for the currently selected calendar day
 export const DayEventsPopover: React.FC<DayEventsPopoverProps> = ({
   day,
   events,

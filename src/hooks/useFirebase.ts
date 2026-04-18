@@ -161,7 +161,22 @@ export const useFirestoreSync = (user: any) => {
       ...rest,
       createdAt: Timestamp.fromDate(group.createdAt),
     };
-    await setDoc(doc(db, `users/${targetUid}/groups/${group.id}`), data);
+    
+    // Use a batch to create group and owner member entry
+    const batch = writeBatch(db);
+    batch.set(doc(db, `users/${targetUid}/groups/${group.id}`), data);
+    
+    const memberId = crypto.randomUUID();
+    const memberData: Omit<MemberProfile, 'id'> = {
+      groupId: group.id,
+      name: user.displayName || user.email?.split('@')[0] || 'Admin',
+      email: user.email || undefined,
+      role: 'Admin',
+      color: '#6366f1',
+    };
+    batch.set(doc(db, `users/${targetUid}/members/${memberId}`), memberData);
+    
+    await batch.commit();
   };
 
   const deleteGroup = async (id: string, _userId?: string) => {

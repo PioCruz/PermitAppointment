@@ -82,7 +82,10 @@ export const MonthView: React.FC<MonthViewProps> = ({ events, currentDate, setti
         ))}
       </div>
       
-      <div className="flex-1 grid grid-cols-7 auto-rows-fr overflow-y-auto">
+      <div className={cn(
+        "flex-1 grid grid-cols-7 overflow-y-auto",
+        "auto-rows-fr portrait:max-sm:auto-rows-auto"
+      )}>
         {calendarDays.map((day, idx) => {
           const dayEvents = getEventsForDay(day);
           const isCurrentMonth = isSameMonth(day, monthStart);
@@ -92,12 +95,8 @@ export const MonthView: React.FC<MonthViewProps> = ({ events, currentDate, setti
               key={idx} 
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, day)}
-              onClick={() => {
-                // Optional: trigger add event for this day
-                // For now just add cursor-pointer to indicate it's a target
-              }}
               className={cn(
-                "min-h-[120px] p-2 border-r border-b border-border flex flex-col gap-1 transition-colors hover:bg-foreground/[0.02] cursor-pointer",
+                "min-h-[100px] sm:min-h-[120px] p-1.5 sm:p-2 border-r border-b border-border flex flex-col gap-1 transition-colors hover:bg-foreground/[0.02] cursor-pointer",
                 !isCurrentMonth && "opacity-20"
               )}
             >

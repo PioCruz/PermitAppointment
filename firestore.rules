@@ -1,0 +1,172 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users/{userId}/groups
+// Document ID: groupId
+// Fields:
+//   - name: string (required) - Group name
+//   - createdAt: timestamp (required) - Creation time
+//
+// Collection: users/{userId}/members
+// Document ID: memberId
+// Fields:
+//   - groupId: string (required) - ID of the group
+//   - name: string (required) - Member name
+//   - email: string (optional) - Member email
+//   - role: string (required, ['Admin', 'Member']) - Role in group
+//   - color: string (required) - Member color
+//   - pictureUrl: string (optional) - Profile picture
+//
+// Collection: users/{userId}/events
+// Document ID: eventId
+// Fields:
+//   - groupId: string (required) - ID of the group
+//   - title: string (required) - Event title
+//   - category: string (required) - Event category
+//   - start: timestamp (required) - Start time
+//   - end: timestamp (required) - End time
+//   - createdBy: string (required) - UID of creator
+//
+// Collection: users/{userId}/permits
+// Document ID: permitId
+// Fields:
+//   - groupId: string (required) - ID of the group
+//   - type: string (required, ['Leave', 'Access', 'Budget']) - Permit type
+//   - status: string (required, ['pending', 'Accepted', 'cancelled', 'In Sched']) - Status
+//   - sender: string (required) - Sender name
+//   - receiver: string (required) - Receiver name
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isValidGroup(data) {
+      return isValidString(data.name, 1, 100) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidMember(data) {
+      return isValidString(data.groupId, 1, 100) &&
+             isValidString(data.name, 1, 100) &&
+             data.role in ['Admin', 'Member'] &&
+             isValidString(data.color, 4, 30);
+    }
+
+    function isValidEvent(data) {
+      return isValidString(data.groupId, 1, 100) &&
+             isValidString(data.title, 1, 200) &&
+             data.start is timestamp &&
+             data.end is timestamp &&
+             isValidString(data.category, 1, 50) &&
+             data.createdBy is string;
+    }
+
+    function isValidPermit(data) {
+      return isValidString(data.groupId, 1, 100) &&
+             data.type in ['Leave', 'Access', 'Budget'] &&
+             data.status in ['pending', 'Accepted', 'cancelled', 'In Sched'] &&
+             isValidString(data.sender, 1, 100) &&
+             isValidString(data.receiver, 1, 100);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // User Profile
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+
+      // Groups subcollection
+      match /groups/{groupId} {
+        allow read: if isAuthenticated();
+        // Only owner can create/manage
+        allow create: if isOwner(userId) && isValidGroup(request.resource.data);
+        allow update: if isOwner(userId) && isValidGroup(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      // Members subcollection
+      match /members/{memberId} {
+        allow read: if isAuthenticated();
+        allow create: if isOwner(userId) && isValidMember(request.resource.data);
+        allow update: if isOwner(userId) && isValidMember(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      // Events subcollection
+      match /events/{eventId} {
+        allow read: if isAuthenticated();
+        allow create: if isOwner(userId) && isValidEvent(request.resource.data);
+        allow update: if isOwner(userId) && isValidEvent(request.resource.data) &&
+                      request.resource.data.createdBy == resource.data.createdBy;
+        allow delete: if isOwner(userId);
+      }
+
+      // Permits subcollection
+      match /permits/{permitId} {
+        allow read: if isAuthenticated();
+        allow create: if isOwner(userId) && isValidPermit(request.resource.data);
+        allow update: if isOwner(userId) && isValidPermit(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // ===============================================================
+    // Collection Group Rules (CRITICAL for the app's sync logic)
+    // ===============================================================
+    
+    match /{path=**}/groups/{groupId} {
+      allow read: if isAuthenticated();
+    }
+    
+    match /{path=**}/members/{memberId} {
+      allow read: if isAuthenticated();
+    }
+    
+    match /{path=**}/events/{eventId} {
+      allow read: if isAuthenticated();
+    }
+    
+    match /{path=**}/permits/{permitId} {
+      allow read: if isAuthenticated();
+    }
+  }
+}

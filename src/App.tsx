@@ -31,7 +31,6 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Authentication: listen to Firebase auth state and decide whether to show login or the main app
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -52,7 +51,6 @@ export default function App() {
 }
 
 function AuthenticatedApp({ user }: { user: User }) {
-  // Data sync: load groups, members, events, and permits for the signed-in user from Firestore
   const {
     groups,
     members,
@@ -85,6 +83,7 @@ function AuthenticatedApp({ user }: { user: User }) {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [activeCategories, setActiveCategories] = useState<string[]>(Object.keys(CATEGORY_COLORS));
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [settings, setSettings] = useState<CalendarSettings>({
     darkMode: true,
     use24HourFormat: true,
@@ -100,7 +99,7 @@ function AuthenticatedApp({ user }: { user: User }) {
   }, [groups, activeGroupId]);
 
   const activeGroupMembers = members.filter(m => m.groupId === activeGroupId);
-  const myMemberProfile = members.find(m => m.email === user.email || m.name === user.email);
+  const myMemberProfile = activeGroupMembers.find(m => m.email === user.email || m.name === user.email);
   const currentUserRole: UserRole = myMemberProfile?.role || 'Member';
 
   // Set active member ID when profile is found
@@ -110,28 +109,45 @@ function AuthenticatedApp({ user }: { user: User }) {
     }
   }, [myMemberProfile, activeMemberId]);
 
-  const groupEvents = events.filter(e => e.groupId === activeGroupId);
-  const filteredEvents = groupEvents.filter(e => {
+  const filteredEvents = events.filter(e => {
+    const isInGroup = e.groupId === activeGroupId;
+    const isPersonal = e.category === 'Personal';
+    
+    // 1. Basic contextual check: Must be in active group OR be my personal event
+    if (!isInGroup && !(isPersonal && e.createdBy === user.uid)) return false;
+
+    // 2. Involvement/Permission check
+    const isCreator = e.createdBy === user.uid;
+    const isAttendee = activeMemberId && e.attendees?.includes(activeMemberId);
+    const isWorkspaceAdmin = currentUserRole === 'Admin';
+
+    if (isPersonal) {
+      // Personal events: strictly owner-only visibility
+      if (!isCreator) return false;
+    } else {
+      // Workspace events: Admins see all, Members see only if involved
+      if (!isWorkspaceAdmin && !isCreator && !isAttendee) return false;
+    }
+
+    // 3. Category & UI preference filters
     const isCategoryActive = activeCategories.includes(e.category);
-    const isPersonalVisible = e.category === 'Personal' ? settings.showPersonalEvents : true;
+    const isPersonalVisible = isPersonal ? settings.showPersonalEvents : true;
+    
     return isCategoryActive && isPersonalVisible;
   });
 
   const groupPermits = permits.filter(p => p.groupId === activeGroupId);
 
-  // Settings: update user calendar preferences (dark mode, time format, filters)
   const handleUpdateSettings = (newSettings: Partial<CalendarSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
   };
 
-  // Permits: create a new permit request for the current group
   const handleAddPermit = (newPermit: Permit) => {
     if (!activeGroupId) return;
     addPermit({ ...newPermit, groupId: activeGroupId });
     toast.success('Permit request submitted');
   };
 
-  // Permits: change the status of a permit and show a matching toast notification
   const handleUpdatePermitStatus = (id: string, status: Permit['status']) => {
     const permit = permits.find(p => p.id === id);
     if (permit) {
@@ -146,7 +162,6 @@ function AuthenticatedApp({ user }: { user: User }) {
     }
   };
 
-  // Feature: create a pre-filled calendar event based on a permit and open the event editor
   const handleScheduleAppointment = (permit: Permit) => {
     if (!activeGroupId) return;
     // 1. Prepare a new event based on the permit
@@ -170,7 +185,6 @@ function AuthenticatedApp({ user }: { user: User }) {
 
   const pendingPermitsCount = groupPermits.filter(p => p.status === 'pending' && p.receiver === activeMemberId).length;
 
-  // Events: create or update a calendar event and optionally link it back to a permit
   const handleAddEvent = (newEvent: CalendarEvent) => {
     if (!activeGroupId) return;
     
@@ -193,7 +207,6 @@ function AuthenticatedApp({ user }: { user: User }) {
     setSelectedEvent(null);
   };
 
-  // Events: delete an event and close the event detail modal
   const handleDeleteEvent = (id: string) => {
     const eventToDelete = events.find(e => e.id === id);
     deleteEvent(id, eventToDelete?._userId);
@@ -202,33 +215,28 @@ function AuthenticatedApp({ user }: { user: User }) {
     toast.success('Event deleted');
   };
 
-  // Events: open the event editor with the selected event pre-filled
   const handleEditEvent = (event: CalendarEvent) => {
     setSelectedEvent(event);
     setIsDetailOpen(false);
     setIsEventModalOpen(true);
   };
 
-  // Events: open the event detail modal for a clicked event
   const handleSelectEvent = (event: CalendarEvent) => {
     setSelectedEvent(event);
     setIsDetailOpen(true);
     setIsDayPopoverOpen(false);
   };
 
-  // Calendar: open the day's events popover when a day is clicked in the calendar
   const handleSelectDay = (day: Date) => {
     setSelectedDay(day);
     setIsDayPopoverOpen(true);
   };
 
-  // Calendar: jump to a day selected from the sidebar mini-calendar
   const handleSidebarDateSelect = (date: Date) => {
     setCurrentDate(date);
     setViewMode('Day');
   };
 
-  // Navigation: move the visible date backward based on the current view mode
   const handlePrev = () => {
     switch (viewMode) {
       case 'Agenda':
@@ -239,7 +247,6 @@ function AuthenticatedApp({ user }: { user: User }) {
     }
   };
 
-  // Navigation: move the visible date forward based on the current view mode
   const handleNext = () => {
     switch (viewMode) {
       case 'Agenda':
@@ -250,10 +257,8 @@ function AuthenticatedApp({ user }: { user: User }) {
     }
   };
 
-  // Navigation: jump the visible date back to today
   const handleToday = () => setCurrentDate(new Date());
 
-  // Events: update an event only if the current user is allowed to modify it
   const handleUpdateEvent = (updatedEvent: CalendarEvent) => {
     const originalEvent = events.find(e => e.id === updatedEvent.id);
     if (originalEvent) {
@@ -264,7 +269,6 @@ function AuthenticatedApp({ user }: { user: User }) {
     toast.success('Event updated successfully');
   };
 
-  // Badge count: compute how many events match the current filters for the active view
   const getFilteredEventCount = () => {
     switch (viewMode) {
       case 'Day':
@@ -284,7 +288,6 @@ function AuthenticatedApp({ user }: { user: User }) {
     }
   };
 
-  // View router: choose which calendar or permits view to render based on viewMode
   const renderView = () => {
     const commonProps = {
       events: filteredEvents,
@@ -317,6 +320,8 @@ function AuthenticatedApp({ user }: { user: User }) {
     <div className="flex flex-col h-screen bg-background text-foreground font-sans selection:bg-foreground/10">
       <Toaster position="top-right" theme={settings.darkMode ? 'dark' : 'light'} />
       <Header 
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
         currentDate={currentDate}
         viewMode={viewMode}
         setViewMode={setViewMode}
@@ -344,8 +349,10 @@ function AuthenticatedApp({ user }: { user: User }) {
         isAdmin={isAdmin}
       />
       
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         <Sidebar 
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
           currentDate={currentDate}
           onDateSelect={handleSidebarDateSelect}
           events={filteredEvents}
@@ -376,7 +383,7 @@ function AuthenticatedApp({ user }: { user: User }) {
         onAdd={handleAddPermit}
         currentUserName={user.email || ''}
         activeGroupId={activeGroupId}
-        members={members}
+        members={activeGroupMembers}
       />
 
       <AddEventModal 
@@ -390,7 +397,7 @@ function AuthenticatedApp({ user }: { user: User }) {
         currentUser={currentUserRole}
         currentUserId={activeMemberId}
         activeGroupId={activeGroupId}
-        members={members}
+        members={activeGroupMembers}
       />
 
       <SettingsPopover

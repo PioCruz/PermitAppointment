@@ -50,23 +50,23 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-sm bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden"
+            className="relative w-[95%] max-w-sm bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden"
           >
-            <div className="p-6 space-y-6">
-              <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-xl shrink-0 ${iconColors[variant]}`}>
-                  <AlertTriangle className="w-6 h-6" />
+            <div className="p-5 sm:p-6 space-y-4 sm:space-y-6">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${iconColors[variant]}`}>
+                  <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-foreground">{title}</h3>
-                  <p className="text-sm text-foreground/40 leading-relaxed">{message}</p>
+                  <h3 className="text-base sm:text-lg font-bold text-foreground">{title}</h3>
+                  <p className="text-xs sm:text-sm text-foreground/40 leading-relaxed">{message}</p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-2">
+              <div className="flex items-center justify-end gap-2 sm:gap-3 pt-2">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 rounded-xl text-sm font-bold text-foreground hover:bg-foreground/5 transition-colors border border-border"
+                  className="px-4 py-2 rounded-xl text-sm font-bold text-foreground hover:bg-foreground/5 transition-colors border border-border flex-1 sm:flex-none"
                 >
                   {cancelLabel}
                 </button>
@@ -75,7 +75,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                     onConfirm();
                     onClose();
                   }}
-                  className={`px-6 py-2 rounded-xl text-sm font-bold transition-colors ${variantColors[variant]}`}
+                  className={`px-4 sm:px-6 py-2 rounded-xl text-sm font-bold transition-colors flex-1 sm:flex-none ${variantColors[variant]}`}
                 >
                   {confirmLabel}
                 </button>

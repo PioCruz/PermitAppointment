@@ -92,9 +92,9 @@ export const WeekView: React.FC<WeekViewProps> = ({ events, currentDate, setting
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-hidden">
+    <div className="flex-1 flex flex-col bg-background overflow-hidden portrait:max-sm:overflow-x-auto scrollbar-hide">
       {/* Header */}
-      <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border">
+      <div className="grid grid-cols-[60px_repeat(7,1fr)] portrait:max-sm:grid-cols-[50px_repeat(7,120px)] border-b border-border portrait:max-sm:w-fit portrait:max-sm:min-w-full">
         <div className="border-r border-border"></div>
         {weekDays.map((day) => (
           <div key={day.toString()} className="py-3 text-center border-r border-border last:border-r-0">
@@ -106,7 +106,7 @@ export const WeekView: React.FC<WeekViewProps> = ({ events, currentDate, setting
 
       {/* Grid */}
       <div className="flex-1 overflow-y-auto relative scrollbar-hide">
-        <div className="relative w-full h-[2880px] grid grid-cols-[60px_repeat(7,1fr)] group/grid">
+        <div className="relative w-full h-[2880px] grid grid-cols-[60px_repeat(7,1fr)] portrait:max-sm:grid-cols-[50px_repeat(7,120px)] group/grid portrait:max-sm:w-fit portrait:max-sm:min-w-full">
           {/* Time column */}
           <div className="border-r border-border relative">
             {intervals.map((time, i) => (
@@ -204,7 +204,7 @@ export const WeekView: React.FC<WeekViewProps> = ({ events, currentDate, setting
           {/* Global Current Time Label (only if today is in view) */}
           {weekDays.some(day => isSameDay(day, now)) && (
             <div 
-              className="absolute left-0 w-[60px] z-50 pointer-events-none flex justify-end pr-2 -translate-y-1/2"
+              className="absolute left-0 w-[50px] sm:w-[60px] z-50 pointer-events-none flex justify-end pr-2 -translate-y-1/2"
               style={{ top: `${currentTimePosition}px` }}
             >
               <span className="text-[10px] font-bold text-red-500 bg-background px-1 tabular-nums">

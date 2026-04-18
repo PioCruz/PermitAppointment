@@ -1,0 +1,82 @@
+{
+  "entities": {
+    "Group": {
+      "title": "Group",
+      "description": "A workspace or group created by a user.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The name of the group." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the group was created." }
+      },
+      "required": ["name", "createdAt"]
+    },
+    "MemberProfile": {
+      "title": "MemberProfile",
+      "description": "A user's profile within a group.",
+      "type": "object",
+      "properties": {
+        "groupId": { "type": "string", "description": "ID of the group this member belongs to." },
+        "name": { "type": "string", "description": "Display name of the member." },
+        "email": { "type": "string", "format": "email", "description": "Email address of the member." },
+        "role": { "type": "string", "enum": ["Admin", "Member"], "description": "Role within the group." },
+        "color": { "type": "string", "description": "Color assigned to the member." },
+        "pictureUrl": { "type": "string", "format": "uri", "description": "Optional profile picture URL." }
+      },
+      "required": ["groupId", "name", "role", "color"]
+    },
+    "CalendarEvent": {
+      "title": "CalendarEvent",
+      "description": "An event on the calendar.",
+      "type": "object",
+      "properties": {
+        "groupId": { "type": "string", "description": "ID of the group this event belongs to." },
+        "title": { "type": "string", "description": "Title of the event." },
+        "description": { "type": "string", "description": "Optional description." },
+        "start": { "type": "string", "format": "date-time", "description": "Start time." },
+        "end": { "type": "string", "format": "date-time", "description": "End time." },
+        "color": { "type": "string", "description": "Category color." },
+        "category": { "type": "string", "description": "Event category (Meeting, Personal, Work, etc.)." },
+        "attendees": { "type": "array", "items": { "type": "string" }, "description": "List of attendee names." },
+        "createdBy": { "type": "string", "description": "UID of the creator." },
+        "creatorName": { "type": "string", "description": "Name of the creator." }
+      },
+      "required": ["groupId", "title", "start", "end", "category", "createdBy"]
+    },
+    "Permit": {
+      "title": "Permit",
+      "description": "A request for leave, access, or budget.",
+      "type": "object",
+      "properties": {
+        "groupId": { "type": "string", "description": "ID of the group." },
+        "type": { "type": "string", "enum": ["Leave", "Access", "Budget"], "description": "Type of permit." },
+        "title": { "type": "string", "description": "Title of the request." },
+        "description": { "type": "string", "description": "Detailed description." },
+        "sender": { "type": "string", "description": "Name of the sender." },
+        "receiver": { "type": "string", "description": "Name of the receiver." },
+        "status": { "type": "string", "enum": ["pending", "Accepted", "cancelled", "In Sched"], "description": "Current status." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Created timestamp." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Updated timestamp." },
+        "metadata": { "type": "object", "description": "Additional permit-specific data." }
+      },
+      "required": ["groupId", "type", "title", "sender", "receiver", "status", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/groups/{groupId}": {
+      "schema": "Group",
+      "description": "Groups owned by a user."
+    },
+    "/users/{userId}/members/{memberId}": {
+      "schema": "MemberProfile",
+      "description": "Members of groups belonging to a user."
+    },
+    "/users/{userId}/events/{eventId}": {
+      "schema": "CalendarEvent",
+      "description": "Events in groups belonging to a user."
+    },
+    "/users/{userId}/permits/{permitId}": {
+      "schema": "Permit",
+      "description": "Permit requests in groups belonging to a user."
+    }
+  }
+}

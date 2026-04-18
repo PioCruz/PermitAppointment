@@ -92,7 +92,7 @@ export const AgendaView: React.FC<AgendaViewProps> = ({ events, currentDate, set
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-8 bg-background">
+    <div className="flex-1 overflow-y-auto p-4 space-y-8 bg-background scrollbar-hide">
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20" />
         <input 

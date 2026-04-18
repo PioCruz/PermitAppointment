@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
-import { ChevronLeft, ChevronRight, Calendar, Clock, Bell, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Clock, Bell, AlertCircle, X } from 'lucide-react';
 import { CalendarEvent, UserRole } from '../types';
 import { cn } from '../lib/utils';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
   currentDate: Date;
   onDateSelect: (date: Date) => void;
   events: CalendarEvent[];
@@ -14,7 +16,7 @@ interface SidebarProps {
   onSelectEvent: (event: CalendarEvent) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentDate, onDateSelect, events, pendingPermitsCount, currentUser, onSelectEvent }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentDate, onDateSelect, events, pendingPermitsCount, currentUser, onSelectEvent }) => {
   const [viewDate, setViewDate] = useState(new Date(currentDate));
 
   const monthStart = startOfMonth(viewDate);
@@ -29,8 +31,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentDate, onDateSelect, eve
   });
 
   return (
-    <div className="w-80 border-r border-border bg-background flex flex-col h-full overflow-y-auto scrollbar-hide">
-      {/* Mini Calendar */}
+    <>
+      {/* Mobile Overlay */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-background/60 backdrop-blur-sm z-40 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      <div className={cn(
+        "fixed inset-y-0 left-0 z-50 w-72 sm:w-80 border-r border-border bg-background flex flex-col h-full transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 lg:z-auto",
+        isOpen ? "translate-x-0" : "-translate-x-full",
+        "overflow-y-hidden landscape:max-sm:overflow-y-auto lg:overflow-y-auto scrollbar-hide"
+      )}>
+        {/* Mobile Header in Sidebar for closing */}
+        <div className="flex items-center justify-between p-4 lg:hidden border-b border-border">
+          <span className="text-sm font-bold uppercase tracking-widest text-foreground/40">Calendar</span>
+          <button onClick={onClose} className="p-2 hover:bg-foreground/5 rounded-lg text-foreground/60">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Mini Calendar */}
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-foreground">{format(viewDate, 'MMMM yyyy')}</h3>
@@ -146,6 +174,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentDate, onDateSelect, eve
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };

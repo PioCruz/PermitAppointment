@@ -33,8 +33,8 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
   const [description, setDescription] = useState('');
   const [attendees, setAttendees] = useState<string[]>([]);
   const [isAttendeesOpen, setIsAttendeesOpen] = useState(false);
+  const [isVariantOpen, setIsVariantOpen] = useState(false);
 
-  // Form state: when editing, pre-fill the fields from the existing event; when creating, reset to defaults
   useEffect(() => {
     if (initialEvent) {
       setTitle(initialEvent.title);
@@ -53,7 +53,6 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
     }
   }, [initialEvent, isOpen]);
 
-  // Events: validate times and build the CalendarEvent object before saving it
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !activeGroupId) return;
@@ -89,6 +88,8 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
     onClose();
   };
 
+  const rowsOnMobile = typeof window !== 'undefined' && window.innerWidth < 640 ? 2 : 3;
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -104,27 +105,27 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-popover border border-border rounded-2xl shadow-2xl z-[101] overflow-hidden"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-md bg-popover border border-border rounded-2xl shadow-2xl z-[101] flex flex-col max-h-[90vh]"
           >
-            <div className="p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-foreground">{initialEvent ? 'Edit Event' : 'Add New Event'}</h2>
-                  <p className="text-sm text-foreground/40">{initialEvent ? 'Modify your existing event.' : 'Create a new event for your calendar.'}</p>
-                </div>
-                <button 
-                  onClick={onClose}
-                  className="p-2 hover:bg-foreground/5 rounded-full text-foreground/40 hover:text-foreground transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+            <div className="p-4 sm:p-6 border-b border-border/5 flex items-center justify-between shrink-0">
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground leading-none">{initialEvent ? 'Edit Event' : 'Add New Event'}</h2>
+                <p className="text-[11px] sm:text-sm text-foreground/40 mt-1">{initialEvent ? 'Modify your existing event.' : 'Create a new event for your calendar.'}</p>
               </div>
+              <button 
+                onClick={onClose}
+                className="p-2 hover:bg-foreground/5 rounded-full text-foreground/40 hover:text-foreground transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
+            <div className="p-4 sm:p-6 overflow-y-auto scrollbar-hide">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+                <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-center gap-2 text-foreground/60 h-4">
                     <Tag className="w-3 h-3" />
-                    <label className="text-xs font-bold uppercase tracking-wider leading-none">Title</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider leading-none">Title</label>
                   </div>
                   <input
                     autoFocus
@@ -132,50 +133,50 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Enter a title"
-                    className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-border transition-colors"
+                    className="w-full bg-card border border-border rounded-xl px-4 py-2.5 sm:py-3 text-sm sm:text-base text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-border transition-colors"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 sm:space-y-2">
                     <div className="flex items-center gap-2 text-foreground/60 h-4">
                       <Calendar className="w-3 h-3" />
-                      <label className="text-xs font-bold uppercase tracking-wider leading-none">Start Date</label>
+                      <label className="text-[10px] font-bold uppercase tracking-wider leading-none">Start Date</label>
                     </div>
                     <div className="relative">
                       <input
                         type="datetime-local"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-border transition-colors [color-scheme:dark]"
+                        className="w-full bg-card border border-border rounded-xl px-4 py-2.5 sm:py-3 text-sm text-foreground focus:outline-none focus:border-border transition-colors [color-scheme:dark]"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 sm:space-y-2">
                     <div className="flex items-center gap-2 text-foreground/60 h-4">
                       <Clock className="w-3 h-3" />
-                      <label className="text-xs font-bold uppercase tracking-wider leading-none">End Date</label>
+                      <label className="text-[10px] font-bold uppercase tracking-wider leading-none">End Date</label>
                     </div>
                     <div className="relative">
                       <input
                         type="datetime-local"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-border transition-colors [color-scheme:dark]"
+                        className="w-full bg-card border border-border rounded-xl px-4 py-2.5 sm:py-3 text-sm text-foreground focus:outline-none focus:border-border transition-colors [color-scheme:dark]"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="space-y-2 relative">
+                  <div className="space-y-1.5 sm:space-y-2 relative">
                     <div className="flex items-center gap-2 text-foreground/60 h-4">
                       <User className="w-3 h-3" />
-                      <label className="text-xs font-bold uppercase tracking-wider leading-none">Attendees</label>
+                      <label className="text-[10px] font-bold uppercase tracking-wider leading-none">Attendees</label>
                     </div>
                     <div 
-                      className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground focus-within:border-border transition-colors cursor-pointer min-h-[48px] flex flex-wrap gap-2 items-center"
+                      className="w-full bg-card border border-border rounded-xl px-4 py-2.5 sm:py-3 text-sm text-foreground focus-within:border-border transition-colors cursor-pointer min-h-[44px] sm:min-h-[48px] flex flex-wrap gap-2 items-center"
                       onClick={() => setIsAttendeesOpen(!isAttendeesOpen)}
                     >
                       {attendees.length === 0 ? (
@@ -277,54 +278,84 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
                     </button>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 sm:space-y-2">
                     <div className="flex items-center gap-2 text-foreground/60 h-4">
                       <Tag className="w-3 h-3" />
-                      <label className="text-xs font-bold uppercase tracking-wider leading-none">Variant</label>
+                      <label className="text-[10px] font-bold uppercase tracking-wider leading-none">Variant</label>
                     </div>
-                    <div className="relative group">
-                      <select
-                        value={variant.name}
-                        onChange={(e) => setVariant(VARIANTS.find(v => v.name === e.target.value) || VARIANTS[0])}
-                        className="w-full bg-card border border-border rounded-xl px-10 py-3 text-foreground appearance-none focus:outline-none focus:border-border transition-colors cursor-pointer"
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsVariantOpen(!isVariantOpen)}
+                        className="w-full flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-2.5 sm:py-3 text-sm text-foreground hover:bg-foreground/5 transition-colors focus:outline-none"
                       >
-                        {VARIANTS.map((v) => (
-                          <option key={v.name} value={v.name}>{v.name}</option>
-                        ))}
-                      </select>
-                      <div className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full", variant.color)} />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-foreground/20">
-                        <ChevronDown className="w-4 h-4" />
-                      </div>
+                        <div className={cn("w-3 h-3 rounded-full shrink-0", variant.color)} />
+                        <span className="flex-1 text-left">{variant.category}</span>
+                        <ChevronDown className={cn("w-4 h-4 text-foreground/20 transition-transform", isVariantOpen && "rotate-180")} />
+                      </button>
+
+                      <AnimatePresence>
+                        {isVariantOpen && (
+                          <>
+                            <div className="fixed inset-0 z-40" onClick={() => setIsVariantOpen(false)} />
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-2xl z-50 overflow-hidden"
+                            >
+                              <div className="p-1">
+                                {VARIANTS.map((v) => (
+                                  <button
+                                    key={v.name}
+                                    type="button"
+                                    onClick={() => {
+                                      setVariant(v);
+                                      setIsVariantOpen(false);
+                                    }}
+                                    className={cn(
+                                      "flex items-center gap-3 w-full px-3 py-2 rounded-lg text-xs transition-colors",
+                                      variant.name === v.name ? "bg-foreground/10 text-foreground" : "text-foreground/60 hover:bg-foreground/5"
+                                    )}
+                                  >
+                                    <div className={cn("w-2 h-2 rounded-full", v.color)} />
+                                    <span>{v.category}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </motion.div>
+                          </>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-center gap-2 text-foreground/60 h-4">
                     <AlignLeft className="w-3 h-3" />
-                    <label className="text-xs font-bold uppercase tracking-wider leading-none">Description</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider leading-none">Description</label>
                   </div>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Enter a description"
-                    rows={3}
-                    className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-border transition-colors resize-none"
+                    rows={rowsOnMobile}
+                    className="w-full bg-card border border-border rounded-xl px-4 py-2.5 sm:py-3 text-sm text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-border transition-colors resize-none"
                   />
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-4">
+                <div className="flex items-center justify-end gap-2 shrink-0">
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-6 py-2.5 rounded-xl text-sm font-bold text-foreground hover:bg-foreground/5 transition-colors border border-border"
+                    className="flex-1 sm:flex-none px-4 py-3 rounded-xl text-sm font-bold text-foreground hover:bg-foreground/5 transition-colors border border-border"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 rounded-xl text-sm font-bold bg-foreground text-background hover:bg-foreground/90 transition-colors"
+                    className="flex-[2] sm:flex-none px-4 py-3 rounded-xl text-sm font-bold bg-foreground text-background hover:bg-foreground/90 transition-colors"
                   >
                     {initialEvent ? 'Save Changes' : 'Create Event'}
                   </button>

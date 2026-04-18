@@ -69,26 +69,26 @@ export const PermitsView: React.FC<PermitsViewProps> = ({ permits, currentUser, 
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 bg-background">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-background">
+      <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
+        <div className="flex flex-col portrait:max-sm:flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="portrait:max-sm:space-y-1">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground">
               {currentUser === 'Admin' ? (activeTab === 'Incoming' ? 'Permit Management' : activeTab === 'History' ? 'Permit History' : 'My Permits') : 'My Permits'}
             </h2>
-            <p className="text-sm text-foreground/40 mt-1">
+            <p className="text-xs sm:text-sm text-foreground/40">
               {currentUser === 'Admin' 
                 ? (activeTab === 'Incoming' ? 'Review and manage incoming requests' : activeTab === 'History' ? 'View resolved incoming requests' : 'Track your own sent requests') 
                 : 'Track the status of your sent requests'}
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             {currentUser === 'Admin' && (
               <div className="flex p-1 bg-foreground/5 rounded-xl border border-border">
                 <button
                   onClick={() => setActiveTab('Incoming')}
                   className={cn(
-                    "px-4 py-1.5 text-xs font-bold rounded-lg transition-all",
+                    "flex-1 sm:flex-none px-4 py-1.5 text-[10px] sm:text-xs font-bold rounded-lg transition-all",
                     activeTab === 'Incoming' ? "bg-foreground text-background shadow-lg" : "text-foreground/40 hover:text-foreground/60"
                   )}
                 >
@@ -97,7 +97,7 @@ export const PermitsView: React.FC<PermitsViewProps> = ({ permits, currentUser, 
                 <button
                   onClick={() => setActiveTab('History')}
                   className={cn(
-                    "px-4 py-1.5 text-xs font-bold rounded-lg transition-all",
+                    "flex-1 sm:flex-none px-4 py-1.5 text-[10px] sm:text-xs font-bold rounded-lg transition-all",
                     activeTab === 'History' ? "bg-foreground text-background shadow-lg" : "text-foreground/40 hover:text-foreground/60"
                   )}
                 >
@@ -106,7 +106,7 @@ export const PermitsView: React.FC<PermitsViewProps> = ({ permits, currentUser, 
                 <button
                   onClick={() => setActiveTab('Outgoing')}
                   className={cn(
-                    "px-4 py-1.5 text-xs font-bold rounded-lg transition-all",
+                    "flex-1 sm:flex-none px-4 py-1.5 text-[10px] sm:text-xs font-bold rounded-lg transition-all",
                     activeTab === 'Outgoing' ? "bg-foreground text-background shadow-lg" : "text-foreground/40 hover:text-foreground/60"
                   )}
                 >
@@ -114,19 +114,21 @@ export const PermitsView: React.FC<PermitsViewProps> = ({ permits, currentUser, 
                 </button>
               </div>
             )}
-            <div className="relative group/search">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20 group-focus-within/search:text-foreground/40 transition-colors" />
-              <input 
-                type="text" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search permits..."
-                className="w-64 bg-card border border-border rounded-lg py-2 pl-10 pr-4 text-xs text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-border transition-all focus:w-80"
-              />
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-foreground/5 rounded-lg border border-border">
-              <Clock className="w-4 h-4 text-foreground/40" />
-              <span className="text-xs font-medium text-foreground/60">{filteredPermits.length} Total</span>
+            <div className="flex items-center gap-2">
+              <div className="relative group/search flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20 group-focus-within/search:text-foreground/40 transition-colors" />
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search permits..."
+                  className="w-full sm:w-64 bg-card border border-border rounded-lg py-2 pl-10 pr-4 text-xs text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-border transition-all sm:focus:w-80"
+                />
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 bg-foreground/5 rounded-lg border border-border shrink-0">
+                <Clock className="w-4 h-4 text-foreground/40" />
+                <span className="text-[10px] sm:text-xs font-medium text-foreground/60">{filteredPermits.length} Total</span>
+              </div>
             </div>
           </div>
         </div>
@@ -154,30 +156,30 @@ export const PermitsView: React.FC<PermitsViewProps> = ({ permits, currentUser, 
                     isExpanded && "border-border bg-muted"
                   )}
                 >
-                  <div className="flex items-start justify-between gap-6">
-                    <div className="flex gap-4 flex-1">
-                      <div className="w-12 h-12 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/60 border border-border shrink-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-6">
+                    <div className="flex gap-4 flex-1 min-w-0">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/60 border border-border shrink-0">
                         {getIcon(permit.type)}
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-bold text-foreground">{permit.title}</h3>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                          <h3 className="text-base sm:text-lg font-bold text-foreground truncate">{permit.title}</h3>
                           <span className={cn(
-                            "px-2 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider border",
+                            "px-2 py-0.5 text-[9px] sm:text-[10px] font-bold rounded-full uppercase tracking-wider border",
                             getStatusColor(permit.status)
                           )}>
                             {permit.status}
                           </span>
-                          <div className="ml-auto text-foreground/20">
+                          <div className="ml-auto text-foreground/20 hidden sm:block">
                             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-4 mt-2 text-[10px] font-bold text-foreground/40 uppercase tracking-widest">
+                        <div className="flex items-center gap-2 sm:gap-4 mt-2 text-[8px] sm:text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex-wrap">
                           <span>From: {permit.sender}</span>
-                          <span>•</span>
+                          <span className="hidden sm:inline">•</span>
                           <span>To: {permit.receiver}</span>
-                          <span>•</span>
+                          <span className="hidden sm:inline">•</span>
                           <span>{format(permit.createdAt, 'MMM d, HH:mm')}</span>
                         </div>
 
