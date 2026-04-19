@@ -37,25 +37,25 @@ export const DayEventsPopover: React.FC<DayEventsPopoverProps> = ({
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative w-full max-w-sm bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-sm bg-popover border border-border rounded-2xl shadow-2xl flex flex-col max-h-[85vh]"
           >
-            <div className="p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
-                  <h3 className="text-sm font-bold text-foreground">
-                    Events on {format(day, 'EEEE, MMMM d, yyyy')}
-                  </h3>
-                </div>
-                <button 
-                  onClick={onClose}
-                  className="p-1.5 hover:bg-foreground/5 rounded-full text-foreground/40 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+            <div className="px-5 pt-5 pb-4 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
+                <h3 className="text-sm font-bold text-foreground">
+                  Events on {format(day, 'EEEE, MMMM d, yyyy')}
+                </h3>
               </div>
+              <button
+                onClick={onClose}
+                className="p-1.5 hover:bg-foreground/5 rounded-full text-foreground/40 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
-              <div className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-hide">
+            <div className="px-5 pt-1 pb-5 overflow-y-auto">
+              <div className="space-y-2">
                 {events.length === 0 ? (
                   <div className="py-8 text-center text-foreground/20 italic text-xs">
                     No events scheduled for this day
@@ -83,6 +83,7 @@ export const DayEventsPopover: React.FC<DayEventsPopoverProps> = ({
               </div>
             </div>
           </motion.div>
+
         </div>
       )}
     </AnimatePresence>

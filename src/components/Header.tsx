@@ -136,7 +136,7 @@ export const Header: React.FC<HeaderProps> = ({
       name: name,
       email: email,
       role: 'Member',
-      color: `hsl(${Math.random() * 360}, 70%, 60%)`,
+      color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)`,
     };
     onAddMember(newMember);
     setNewMemberName('');
@@ -241,6 +241,9 @@ export const Header: React.FC<HeaderProps> = ({
                         <form onSubmit={handleCreateGroup} className="mb-3">
                           <input
                             autoFocus
+                            id="new-group-name"
+                            name="group-name"
+                            aria-label="Group name"
                             type="text"
                             value={newGroupName}
                             onChange={(e) => setNewGroupName(e.target.value)}
@@ -268,9 +271,6 @@ export const Header: React.FC<HeaderProps> = ({
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   onDeleteGroup(group.id, group._userId);
-                                  if (activeGroupId === group.id) {
-                                    onSelectGroup('');
-                                  }
                                 }}
                                 className="p-2 text-foreground/20 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                                 title="Delete Group"
@@ -304,6 +304,9 @@ export const Header: React.FC<HeaderProps> = ({
                           <form onSubmit={handleCreateMember} className="mb-3">
                             <input
                               autoFocus
+                              id="new-member-email"
+                              name="member-email"
+                              aria-label="Member email"
                               type="email"
                               value={newMemberName}
                               onChange={(e) => setNewMemberName(e.target.value)}

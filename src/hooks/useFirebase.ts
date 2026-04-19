@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
 import {
   collection,
+  collectionGroup,
   doc,
   onSnapshot,
   setDoc,
   updateDoc,
   deleteDoc,
   query,
-  where,
   Timestamp,
   writeBatch,
-  collectionGroup,
   getDoc,
   serverTimestamp
 } from 'firebase/firestore';
@@ -57,11 +56,9 @@ export const useFirestoreSync = (user: any) => {
       }
       setIsAdmin(userIsAdmin);
 
-      // 1. Groups Listener
+      // 1. Groups Listener — collectionGroup so members see workspace owner's groups
       const setupGroupsListener = () => {
-        const groupsQuery = query(collectionGroup(db, 'groups'));
-          
-        return onSnapshot(groupsQuery, (snapshot) => {
+        return onSnapshot(query(collectionGroup(db, 'groups')), (snapshot) => {
           const fetchedGroups = snapshot.docs.map(doc => {
             const data = doc.data();
             return {
@@ -73,16 +70,15 @@ export const useFirestoreSync = (user: any) => {
           }) as Group[];
           setGroups(fetchedGroups.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()));
         }, (error: any) => {
+          if (error.code === 'permission-denied') return;
           console.error("Groups snapshot error:", error.message || error);
         });
       };
       unsubscribeGroups = setupGroupsListener();
 
-      // 2. Members Listener
+      // 2. Members Listener — collectionGroup so members see all workspace members
       const setupMembersListener = () => {
-        const membersQuery = query(collectionGroup(db, 'members'));
-          
-        return onSnapshot(membersQuery, (snapshot) => {
+        return onSnapshot(query(collectionGroup(db, 'members')), (snapshot) => {
           const fetchedMembers = snapshot.docs.map(doc => ({
             ...doc.data(),
             id: doc.id,
@@ -90,16 +86,15 @@ export const useFirestoreSync = (user: any) => {
           })) as MemberProfile[];
           setMembers(fetchedMembers);
         }, (error: any) => {
+          if (error.code === 'permission-denied') return;
           console.error("Members snapshot error:", error.message || error);
         });
       };
       unsubscribeMembers = setupMembersListener();
 
-      // 3. Events Listener
+      // 3. Events Listener — collectionGroup so members see workspace events
       const setupEventsListener = () => {
-        const eventsQuery = query(collectionGroup(db, 'events'));
-          
-        return onSnapshot(eventsQuery, (snapshot) => {
+        return onSnapshot(query(collectionGroup(db, 'events')), (snapshot) => {
           const fetchedEvents = snapshot.docs.map(doc => {
             const data = doc.data();
             return {
@@ -112,16 +107,15 @@ export const useFirestoreSync = (user: any) => {
           }) as CalendarEvent[];
           setEvents(fetchedEvents);
         }, (error: any) => {
+          if (error.code === 'permission-denied') return;
           console.error("Events snapshot error:", error.message || error);
         });
       };
       unsubscribeEvents = setupEventsListener();
 
-      // 4. Permits Listener
+      // 4. Permits Listener — collectionGroup so all workspace permits are visible
       const setupPermitsListener = () => {
-        const permitsQuery = query(collectionGroup(db, 'permits'));
-          
-        return onSnapshot(permitsQuery, (snapshot) => {
+        return onSnapshot(query(collectionGroup(db, 'permits')), (snapshot) => {
           const fetchedPermits = snapshot.docs.map(doc => {
             const data = doc.data();
             return {
@@ -134,6 +128,7 @@ export const useFirestoreSync = (user: any) => {
           }) as Permit[];
           setPermits(fetchedPermits);
         }, (error: any) => {
+          if (error.code === 'permission-denied') return;
           console.error("Permits snapshot error:", error.message || error);
         });
       };
@@ -182,16 +177,34 @@ export const useFirestoreSync = (user: any) => {
   const deleteGroup = async (id: string, _userId?: string) => {
     if (!user) return;
     const targetUid = _userId || user.uid;
-    await deleteDoc(doc(db, `users/${targetUid}/groups/${id}`));
+    const batch = writeBatch(db);
+
+    // Delete the group itself
+    batch.delete(doc(db, `users/${targetUid}/groups/${id}`));
+
+    // Cascade: delete all members that belong to this group
+    members.filter(m => m.groupId === id).forEach(m => {
+      batch.delete(doc(db, `users/${targetUid}/members/${m.id}`));
+    });
+
+    // Cascade: delete all events that belong to this group
+    events.filter(e => e.groupId === id).forEach(e => {
+      batch.delete(doc(db, `users/${targetUid}/events/${e.id}`));
+    });
+
+    await batch.commit();
   };
 
   const addMember = async (member: MemberProfile) => {
     if (!user) return;
     const { _userId, ...rest } = member;
     const targetUid = _userId || user.uid;
-    // If we are adding a member by email, we might want to store their UID if we had it.
-    // For now, we store the member profile as is.
-    await setDoc(doc(db, `users/${targetUid}/members/${member.id}`), rest);
+    try {
+      await setDoc(doc(db, `users/${targetUid}/members/${member.id}`), rest);
+    } catch (error: any) {
+      console.error('addMember failed:', error.message || error);
+      throw error; // re-throw so the UI can show a toast
+    }
   };
 
   const updateMember = async (member: MemberProfile) => {
@@ -242,7 +255,9 @@ export const useFirestoreSync = (user: any) => {
   const addPermit = async (permit: Permit) => {
     if (!user) return;
     const { _userId, ...rest } = permit;
-    const targetUid = user.uid;
+    // Write to the workspace owner's path (_userId) so the owner can approve it.
+    // Falls back to user.uid if submitting to own workspace.
+    const targetUid = _userId || user.uid;
     const data = {
       ...rest,
       createdAt: serverTimestamp(),

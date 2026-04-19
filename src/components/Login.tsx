@@ -80,11 +80,14 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground/40 uppercase tracking-widest">Email</label>
+            <label htmlFor="login-email" className="text-xs font-bold text-foreground/40 uppercase tracking-widest">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/20" />
               <input
+                id="login-email"
+                name="email"
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onFocus={() => setShowSuggestions(true)}
@@ -114,11 +117,14 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground/40 uppercase tracking-widest">Password</label>
+            <label htmlFor="login-password" className="text-xs font-bold text-foreground/40 uppercase tracking-widest">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/20" />
               <input
+                id="login-password"
+                name="password"
                 type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-background border border-border rounded-xl py-3 pl-11 pr-4 text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-indigo-500 transition-colors"

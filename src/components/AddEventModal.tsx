@@ -27,8 +27,8 @@ const VARIANTS = [
 
 export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAdd, initialEvent, currentUser, currentUserId, activeGroupId, members }) => {
   const [title, setTitle] = useState('');
-  const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
-  const [endDate, setEndDate] = useState(format(new Date(Date.now() + 30 * 60000), "yyyy-MM-dd'T'HH:mm"));
+  const [startDate, setStartDate] = useState(format(new Date(Date.now() + 60000), "yyyy-MM-dd'T'HH:mm"));
+  const [endDate, setEndDate] = useState(format(new Date(Date.now() + 91 * 60000), "yyyy-MM-dd'T'HH:mm"));
   const [variant, setVariant] = useState(VARIANTS[0]);
   const [description, setDescription] = useState('');
   const [attendees, setAttendees] = useState<string[]>([]);
@@ -45,8 +45,8 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
       setAttendees(initialEvent.attendees || []);
     } else {
       setTitle('');
-      setStartDate(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
-      setEndDate(format(new Date(Date.now() + 30 * 60000), "yyyy-MM-dd'T'HH:mm"));
+      setStartDate(format(new Date(Date.now() + 60000), "yyyy-MM-dd'T'HH:mm"));
+      setEndDate(format(new Date(Date.now() + 91 * 60000), "yyyy-MM-dd'T'HH:mm"));
       setVariant(VARIANTS[0]);
       setDescription('');
       setAttendees([]);
@@ -125,9 +125,11 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
                 <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-center gap-2 text-foreground/60 h-4">
                     <Tag className="w-3 h-3" />
-                    <label className="text-[10px] font-bold uppercase tracking-wider leading-none">Title</label>
+                    <label htmlFor="event-title" className="text-[10px] font-bold uppercase tracking-wider leading-none">Title</label>
                   </div>
                   <input
+                    id="event-title"
+                    name="title"
                     autoFocus
                     type="text"
                     value={title}
@@ -141,13 +143,28 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
                   <div className="space-y-1.5 sm:space-y-2">
                     <div className="flex items-center gap-2 text-foreground/60 h-4">
                       <Calendar className="w-3 h-3" />
-                      <label className="text-[10px] font-bold uppercase tracking-wider leading-none">Start Date</label>
+                      <label htmlFor="event-start" className="text-[10px] font-bold uppercase tracking-wider leading-none">Start Date</label>
                     </div>
                     <div className="relative">
                       <input
+                        id="event-start"
+                        name="start"
                         type="datetime-local"
                         value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
+                        onChange={(e) => {
+                          const newStart = e.target.value;
+                          setStartDate(newStart);
+                          // Auto-push end time to keep it 90 minutes after the new start
+                          if (newStart) {
+                            const newStartMs = new Date(newStart).getTime();
+                            const currentEndMs = new Date(endDate).getTime();
+                            const currentStartMs = new Date(startDate).getTime();
+                            const duration = currentEndMs - currentStartMs;
+                            const minDuration = 90 * 60 * 1000;
+                            const newEndMs = newStartMs + Math.max(duration, minDuration);
+                            setEndDate(format(new Date(newEndMs), "yyyy-MM-dd'T'HH:mm"));
+                          }
+                        }}
                         className="w-full bg-card border border-border rounded-xl px-4 py-2.5 sm:py-3 text-sm text-foreground focus:outline-none focus:border-border transition-colors [color-scheme:dark]"
                       />
                     </div>
@@ -156,10 +173,12 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
                   <div className="space-y-1.5 sm:space-y-2">
                     <div className="flex items-center gap-2 text-foreground/60 h-4">
                       <Clock className="w-3 h-3" />
-                      <label className="text-[10px] font-bold uppercase tracking-wider leading-none">End Date</label>
+                      <label htmlFor="event-end" className="text-[10px] font-bold uppercase tracking-wider leading-none">End Date</label>
                     </div>
                     <div className="relative">
                       <input
+                        id="event-end"
+                        name="end"
                         type="datetime-local"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
@@ -173,7 +192,7 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
                   <div className="space-y-1.5 sm:space-y-2 relative">
                     <div className="flex items-center gap-2 text-foreground/60 h-4">
                       <User className="w-3 h-3" />
-                      <label className="text-[10px] font-bold uppercase tracking-wider leading-none">Attendees</label>
+                      <span className="text-[10px] font-bold uppercase tracking-wider leading-none">Attendees</span>
                     </div>
                     <div 
                       className="w-full bg-card border border-border rounded-xl px-4 py-2.5 sm:py-3 text-sm text-foreground focus-within:border-border transition-colors cursor-pointer min-h-[44px] sm:min-h-[48px] flex flex-wrap gap-2 items-center"
@@ -256,7 +275,7 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Personal Event</label>
+                    <span className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Personal Event</span>
                     <button
                       type="button"
                       onClick={() => {
@@ -281,7 +300,7 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
                   <div className="space-y-1.5 sm:space-y-2">
                     <div className="flex items-center gap-2 text-foreground/60 h-4">
                       <Tag className="w-3 h-3" />
-                      <label className="text-[10px] font-bold uppercase tracking-wider leading-none">Variant</label>
+                      <span className="text-[10px] font-bold uppercase tracking-wider leading-none">Variant</span>
                     </div>
                     <div className="relative">
                       <button
@@ -334,9 +353,11 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, o
                 <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-center gap-2 text-foreground/60 h-4">
                     <AlignLeft className="w-3 h-3" />
-                    <label className="text-[10px] font-bold uppercase tracking-wider leading-none">Description</label>
+                    <label htmlFor="event-description" className="text-[10px] font-bold uppercase tracking-wider leading-none">Description</label>
                   </div>
                   <textarea
+                    id="event-description"
+                    name="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Enter a description"

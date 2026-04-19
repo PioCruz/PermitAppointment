@@ -13,10 +13,11 @@ interface SidebarProps {
   events: CalendarEvent[];
   pendingPermitsCount: number;
   currentUser: UserRole;
+  currentUserId: string | null;
   onSelectEvent: (event: CalendarEvent) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentDate, onDateSelect, events, pendingPermitsCount, currentUser, onSelectEvent }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentDate, onDateSelect, events, pendingPermitsCount, currentUser, currentUserId, onSelectEvent }) => {
   const [viewDate, setViewDate] = useState(new Date(currentDate));
 
   const monthStart = startOfMonth(viewDate);
@@ -25,9 +26,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentDate, 
   const endDate = endOfWeek(monthEnd);
   const days = eachDayOfInterval({ start: startDate, end: endDate });
 
+  // "Happening Now" only shows if the current user is listed as an attendee.
+  // They can still see the event on the calendar — this is just the sidebar alert.
   const happeningNow = events.find(event => {
     const now = new Date();
-    return now >= event.start && now <= event.end;
+    const isNow = now >= event.start && now <= event.end;
+    if (!isNow) return false;
+    // No attendees defined → treat as open to all (e.g. admin-created events without attendees)
+    if (!event.attendees || event.attendees.length === 0) return true;
+    return currentUserId ? event.attendees.includes(currentUserId) : false;
   });
 
   return (

@@ -143,30 +143,34 @@ service cloud.firestore {
       // Permits subcollection
       match /permits/{permitId} {
         allow read: if isAuthenticated();
-        allow create: if isOwner(userId) && isValidPermit(request.resource.data);
+        // Any authenticated user (workspace member) can submit a permit to this workspace
+        allow create: if isAuthenticated() && isValidPermit(request.resource.data);
+        // Only the workspace owner can approve / reject / update permits
         allow update: if isOwner(userId) && isValidPermit(request.resource.data);
         allow delete: if isOwner(userId);
       }
     }
 
     // ===============================================================
-    // Collection Group Rules (CRITICAL for the app's sync logic)
+    // Collection Group Rules — required for shared workspace reads
     // ===============================================================
-    
+
     match /{path=**}/groups/{groupId} {
       allow read: if isAuthenticated();
     }
-    
+
     match /{path=**}/members/{memberId} {
       allow read: if isAuthenticated();
     }
-    
+
     match /{path=**}/events/{eventId} {
       allow read: if isAuthenticated();
     }
-    
+
     match /{path=**}/permits/{permitId} {
       allow read: if isAuthenticated();
+      // Any authenticated user can submit a permit to any workspace
+      allow create: if isAuthenticated() && isValidPermit(request.resource.data);
     }
   }
 }

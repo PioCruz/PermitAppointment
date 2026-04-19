@@ -117,8 +117,11 @@ export const PermitsView: React.FC<PermitsViewProps> = ({ permits, currentUser, 
             <div className="flex items-center gap-2">
               <div className="relative group/search flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20 group-focus-within/search:text-foreground/40 transition-colors" />
-                <input 
-                  type="text" 
+                <input
+                  id="permits-search"
+                  name="permits-search"
+                  aria-label="Search permits"
+                  type="search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search permits..."

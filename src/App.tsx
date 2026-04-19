@@ -91,12 +91,18 @@ function AuthenticatedApp({ user }: { user: User }) {
     showPersonalEvents: true,
   });
 
-  // Set active group automatically if none selected
+  // Keep activeGroupId valid: auto-select first group on load,
+  // and clear/reselect when the active group is deleted.
   useEffect(() => {
-    if (groups.length > 0 && !activeGroupId) {
-      setActiveGroupId(groups[0].id);
+    if (groups.length === 0) {
+      setActiveGroupId(null);
+    } else {
+      const stillExists = groups.some(g => g.id === activeGroupId);
+      if (!stillExists) {
+        setActiveGroupId(groups[0].id);
+      }
     }
-  }, [groups, activeGroupId]);
+  }, [groups]); // intentionally excludes activeGroupId to avoid the re-select race
 
   const activeGroupMembers = members.filter(m => m.groupId === activeGroupId);
   const myMemberProfile = activeGroupMembers.find(m => m.email === user.email || m.name === user.email);
@@ -112,27 +118,20 @@ function AuthenticatedApp({ user }: { user: User }) {
   const filteredEvents = events.filter(e => {
     const isInGroup = e.groupId === activeGroupId;
     const isPersonal = e.category === 'Personal';
-    
-    // 1. Basic contextual check: Must be in active group OR be my personal event
+
+    // 1. Must belong to the active group OR be the current user's own personal event
     if (!isInGroup && !(isPersonal && e.createdBy === user.uid)) return false;
 
-    // 2. Involvement/Permission check
-    const isCreator = e.createdBy === user.uid;
-    const isAttendee = activeMemberId && e.attendees?.includes(activeMemberId);
-    const isWorkspaceAdmin = currentUserRole === 'Admin';
+    // 2. Personal events are strictly creator-only
+    if (isPersonal && e.createdBy !== user.uid) return false;
 
-    if (isPersonal) {
-      // Personal events: strictly owner-only visibility
-      if (!isCreator) return false;
-    } else {
-      // Workspace events: Admins see all, Members see only if involved
-      if (!isWorkspaceAdmin && !isCreator && !isAttendee) return false;
-    }
+    // 3. All non-personal workspace events are visible to every member —
+    //    attendees only affects the "Happening Now" sidebar notification, not visibility
 
-    // 3. Category & UI preference filters
+    // 4. Category & UI preference filters
     const isCategoryActive = activeCategories.includes(e.category);
     const isPersonalVisible = isPersonal ? settings.showPersonalEvents : true;
-    
+
     return isCategoryActive && isPersonalVisible;
   });
 
@@ -144,7 +143,9 @@ function AuthenticatedApp({ user }: { user: User }) {
 
   const handleAddPermit = (newPermit: Permit) => {
     if (!activeGroupId) return;
-    addPermit({ ...newPermit, groupId: activeGroupId });
+    const activeGroup = groups.find(g => g.id === activeGroupId);
+    // Pass _userId so the permit is stored in the workspace owner's path
+    addPermit({ ...newPermit, groupId: activeGroupId, _userId: activeGroup?._userId });
     toast.success('Permit request submitted');
   };
 
@@ -224,7 +225,6 @@ function AuthenticatedApp({ user }: { user: User }) {
   const handleSelectEvent = (event: CalendarEvent) => {
     setSelectedEvent(event);
     setIsDetailOpen(true);
-    setIsDayPopoverOpen(false);
   };
 
   const handleSelectDay = (day: Date) => {
@@ -305,7 +305,7 @@ function AuthenticatedApp({ user }: { user: User }) {
       case 'Agenda': return <AgendaView {...commonProps} />;
       case 'Day': return <DayView {...commonProps} />;
       case 'Week': return <WeekView {...commonProps} />;
-      case 'Month': return <MonthView {...commonProps} />;
+      case 'Month': return <MonthView {...commonProps} onShowMore={handleSelectDay} />;
       case 'Year': return <YearView {...commonProps} onSelectDay={handleSelectDay} />;
       case 'Permits': return <PermitsView permits={groupPermits} currentUser={currentUserRole} currentUserName={user.email || ''} onUpdatePermit={handleUpdatePermitStatus} onScheduleAppointment={handleScheduleAppointment} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />;
       default: return <AgendaView {...commonProps} />;
@@ -350,7 +350,7 @@ function AuthenticatedApp({ user }: { user: User }) {
       />
       
       <div className="flex flex-1 overflow-hidden relative">
-        <Sidebar 
+        <Sidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           currentDate={currentDate}
@@ -358,6 +358,7 @@ function AuthenticatedApp({ user }: { user: User }) {
           events={filteredEvents}
           pendingPermitsCount={pendingPermitsCount}
           currentUser={currentUserRole}
+          currentUserId={activeMemberId}
           onSelectEvent={handleSelectEvent}
         />
         

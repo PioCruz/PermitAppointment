@@ -87,8 +87,10 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
           <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Start Date</label>
+                <label htmlFor="leave-start-date" className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Start Date</label>
                 <input
+                  id="leave-start-date"
+                  name="leave-start-date"
                   required
                   type="date"
                   value={startDate}
@@ -97,8 +99,10 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">End Date</label>
+                <label htmlFor="leave-end-date" className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">End Date</label>
                 <input
+                  id="leave-end-date"
+                  name="leave-end-date"
                   required
                   type="date"
                   value={endDate}
@@ -108,8 +112,10 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Reason for Leave</label>
+              <label htmlFor="leave-reason" className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Reason for Leave</label>
               <textarea
+                id="leave-reason"
+                name="leave-reason"
                 required
                 rows={3}
                 value={description}
@@ -124,8 +130,10 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
         return (
           <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Location / Room</label>
+              <label htmlFor="access-location" className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Location / Room</label>
               <input
+                id="access-location"
+                name="access-location"
                 required
                 type="text"
                 value={location}
@@ -136,8 +144,10 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Access Date</label>
+                <label htmlFor="access-date" className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Access Date</label>
                 <input
+                  id="access-date"
+                  name="access-date"
                   required
                   type="date"
                   value={startDate}
@@ -146,8 +156,10 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Duration (Hours)</label>
+                <label htmlFor="access-duration" className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Duration (Hours)</label>
                 <input
+                  id="access-duration"
+                  name="access-duration"
                   required
                   type="number"
                   placeholder="2"
@@ -156,8 +168,10 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Purpose of Access</label>
+              <label htmlFor="access-purpose" className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Purpose of Access</label>
               <textarea
+                id="access-purpose"
+                name="access-purpose"
                 required
                 rows={3}
                 value={description}
@@ -173,8 +187,10 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
           <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Amount ($)</label>
+                <label htmlFor="budget-amount" className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Amount ($)</label>
                 <input
+                  id="budget-amount"
+                  name="budget-amount"
                   required
                   type="text"
                   value={amount}
@@ -184,8 +200,10 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Project Name</label>
+                <label htmlFor="budget-project" className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Project Name</label>
                 <input
+                  id="budget-project"
+                  name="budget-project"
                   required
                   type="text"
                   value={project}
@@ -196,8 +214,10 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Justification</label>
+              <label htmlFor="budget-justification" className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Justification</label>
               <textarea
+                id="budget-justification"
+                name="budget-justification"
                 required
                 rows={3}
                 value={description}
@@ -229,7 +249,7 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
 
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto scrollbar-hide">
           <div className="space-y-3">
-            <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Select Permit Type</label>
+            <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Select Permit Type</span>
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {types.map((t) => (
                 <button
@@ -259,8 +279,10 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
             <div className="space-y-1.5 sm:space-y-2 flex-1">
-              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest leading-none">Sent To:</label>
+              <label htmlFor="permit-receiver" className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest leading-none">Sent To:</label>
               <select
+                id="permit-receiver"
+                name="permit-receiver"
                 value={receiver}
                 onChange={(e) => setReceiver(e.target.value)}
                 className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-foreground focus:outline-none focus:border-indigo-500/50 transition-colors"
