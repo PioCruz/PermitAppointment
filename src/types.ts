@@ -74,5 +74,3 @@ export const CATEGORY_COLORS: Record<string, string> = {
   Urgent: 'bg-rose-600/20 border-rose-500 text-rose-400',
   Other: 'bg-amber-600/20 border-amber-500 text-amber-400',
 };
-
-export const MOCK_EVENTS: CalendarEvent[] = [];

@@ -97,6 +97,11 @@ service cloud.firestore {
              data.createdBy is string;
     }
 
+    function isAppAdmin() {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
     function isValidPermit(data) {
       return isValidString(data.groupId, 1, 100) &&
              data.type in ['Leave', 'Access', 'Budget'] &&
@@ -145,9 +150,10 @@ service cloud.firestore {
         allow read: if isAuthenticated();
         // Any authenticated user (workspace member) can submit a permit to this workspace
         allow create: if isAuthenticated() && isValidPermit(request.resource.data);
-        // Only the workspace owner can approve / reject / update permits
-        allow update: if isOwner(userId) && isValidPermit(request.resource.data);
-        allow delete: if isOwner(userId);
+        // Workspace owner or app admin can approve/reject; creator can cancel their own
+        allow update: if isValidPermit(request.resource.data) &&
+                      (isOwner(userId) || isAppAdmin() || request.auth.uid == resource.data.createdBy);
+        allow delete: if isOwner(userId) || isAppAdmin();
       }
     }
 
@@ -171,6 +177,9 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       // Any authenticated user can submit a permit to any workspace
       allow create: if isAuthenticated() && isValidPermit(request.resource.data);
+      // App admin can update any permit (covers stale permits at wrong path); creator can cancel own
+      allow update: if isValidPermit(request.resource.data) &&
+                    (isAppAdmin() || request.auth.uid == resource.data.createdBy);
     }
   }
 }

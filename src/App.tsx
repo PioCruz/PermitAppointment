@@ -120,10 +120,10 @@ function AuthenticatedApp({ user }: { user: User }) {
     const isPersonal = e.category === 'Personal';
 
     // 1. Must belong to the active group OR be the current user's own personal event
-    if (!isInGroup && !(isPersonal && e.createdBy === user.uid)) return false;
+    if (!isInGroup && !(isPersonal && e.createdBy === activeMemberId)) return false;
 
     // 2. Personal events are strictly creator-only
-    if (isPersonal && e.createdBy !== user.uid) return false;
+    if (isPersonal && e.createdBy !== activeMemberId) return false;
 
     // 3. All non-personal workspace events are visible to every member —
     //    attendees only affects the "Happening Now" sidebar notification, not visibility
@@ -307,7 +307,7 @@ function AuthenticatedApp({ user }: { user: User }) {
       case 'Week': return <WeekView {...commonProps} />;
       case 'Month': return <MonthView {...commonProps} onShowMore={handleSelectDay} />;
       case 'Year': return <YearView {...commonProps} onSelectDay={handleSelectDay} />;
-      case 'Permits': return <PermitsView permits={groupPermits} currentUser={currentUserRole} currentUserName={user.email || ''} onUpdatePermit={handleUpdatePermitStatus} onScheduleAppointment={handleScheduleAppointment} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />;
+      case 'Permits': return <PermitsView permits={groupPermits} currentUser={currentUserRole} currentUserName={myMemberProfile?.name || user.email || ''} onUpdatePermit={handleUpdatePermitStatus} onScheduleAppointment={handleScheduleAppointment} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />;
       default: return <AgendaView {...commonProps} />;
     }
   };
@@ -382,7 +382,7 @@ function AuthenticatedApp({ user }: { user: User }) {
         isOpen={isPermitModalOpen}
         onClose={() => setIsPermitModalOpen(false)}
         onAdd={handleAddPermit}
-        currentUserName={user.email || ''}
+        currentUserName={myMemberProfile?.name || user.email || ''}
         activeGroupId={activeGroupId}
         members={activeGroupMembers}
       />

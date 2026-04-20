@@ -8,10 +8,9 @@ interface YearViewProps {
   currentDate: Date;
   settings: CalendarSettings;
   onSelectDay: (day: Date) => void;
-  onEventUpdate: (event: CalendarEvent) => void;
 }
 
-export const YearView: React.FC<YearViewProps> = ({ events, currentDate, settings, onSelectDay, onEventUpdate }) => {
+export const YearView: React.FC<YearViewProps> = ({ events, currentDate, settings, onSelectDay }) => {
   const yearStart = startOfYear(currentDate);
   const months = eachMonthOfInterval({
     start: yearStart,
