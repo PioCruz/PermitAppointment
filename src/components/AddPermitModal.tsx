@@ -1,10 +1,82 @@
-import React, { useState } from 'react';
-import { X, Send, Shield, CreditCard, LogOut } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, Send, Shield, CreditCard, LogOut, ChevronDown, Check } from 'lucide-react';
 import { Permit, PermitType, UserRole, MemberProfile } from '../types';
 import { isBefore } from 'date-fns';
 import { cn } from '../lib/utils';
-
+import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
+
+interface SelectOption { value: string; label: string; }
+
+const AnimatedSelect: React.FC<{
+  value: string;
+  onChange: (val: string) => void;
+  options: SelectOption[];
+  placeholder?: string;
+}> = ({ value, onChange, options, placeholder = 'Select...' }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const selected = options.find(o => o.value === value);
+
+  return (
+    <div ref={ref} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setOpen(p => !p)}
+        className={cn(
+          "w-full flex items-center justify-between gap-2 bg-foreground/5 border rounded-xl px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-left transition-colors",
+          open ? "border-indigo-500/50 text-foreground" : "border-border text-foreground/70 hover:border-foreground/20"
+        )}
+      >
+        <span className={selected ? "text-foreground" : "text-foreground/30"}>
+          {selected ? selected.label : placeholder}
+        </span>
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <ChevronDown className="w-3.5 h-3.5 text-foreground/40 shrink-0" />
+        </motion.span>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.ul
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute z-50 top-[calc(100%+6px)] left-0 right-0 bg-card border border-border rounded-xl shadow-xl overflow-hidden"
+          >
+            {options.map(opt => (
+              <li key={opt.value}>
+                <button
+                  type="button"
+                  onClick={() => { onChange(opt.value); setOpen(false); }}
+                  className={cn(
+                    "w-full flex items-center justify-between px-4 py-2.5 text-xs sm:text-sm text-left transition-colors",
+                    opt.value === value
+                      ? "bg-indigo-500/10 text-indigo-400"
+                      : "text-foreground/70 hover:bg-foreground/5 hover:text-foreground"
+                  )}
+                >
+                  {opt.label}
+                  {opt.value === value && <Check className="w-3 h-3 shrink-0" />}
+                </button>
+              </li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 interface AddPermitModalProps {
   isOpen: boolean;
@@ -30,7 +102,6 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
 
   const admins = members.filter(m => m.role === 'Admin');
 
-  if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -238,8 +309,22 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
   ];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/60 backdrop-blur-sm">
-      <div className="w-[95%] max-w-lg bg-card border border-border rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh]">
+    <AnimatePresence>
+    {isOpen && (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-[100] bg-background/60 backdrop-blur-sm"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-lg bg-card border border-border rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] z-[101]"
+      >
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border shrink-0">
           <h2 className="text-lg sm:text-xl font-bold text-foreground leading-none">New Permit Request</h2>
           <button onClick={onClose} className="p-2 hover:bg-foreground/5 rounded-full transition-colors shrink-0">
@@ -247,65 +332,66 @@ export const AddPermitModal: React.FC<AddPermitModalProps> = ({ isOpen, onClose,
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto scrollbar-hide">
-          <div className="space-y-3">
-            <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Select Permit Type</span>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              {types.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => {
-                    setType(t.id);
-                    resetForm();
-                  }}
-                  className={cn(
-                    "flex flex-col items-center gap-2 p-2 sm:p-4 rounded-xl sm:rounded-2xl border transition-all",
-                    type === t.id 
-                      ? t.color + " ring-2 ring-white/10" 
-                      : "bg-foreground/5 border-border text-foreground/40 hover:bg-foreground/10"
-                  )}
-                >
-                  <span className="shrink-0">{t.icon}</span>
-                  <span className="text-[8px] sm:text-[10px] font-bold uppercase">{t.label}</span>
-                </button>
-              ))}
+        <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto scrollbar-hide flex-1">
+            <div className="space-y-3">
+              <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Select Permit Type</span>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                {types.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => {
+                      setType(t.id);
+                      resetForm();
+                    }}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-2 sm:p-4 rounded-xl sm:rounded-2xl border transition-all",
+                      type === t.id
+                        ? t.color + " ring-2 ring-white/10"
+                        : "bg-foreground/5 border-border text-foreground/40 hover:bg-foreground/10"
+                    )}
+                  >
+                    <span className="shrink-0">{t.icon}</span>
+                    <span className="text-[8px] sm:text-[10px] font-bold uppercase">{t.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
+
+            <div className="h-px bg-foreground/5 shrink-0" />
+
+            {renderFormFields()}
           </div>
 
-          <div className="h-px bg-foreground/5 shrink-0" />
-
-          {renderFormFields()}
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
-            <div className="space-y-1.5 sm:space-y-2 flex-1">
-              <label htmlFor="permit-receiver" className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest leading-none">Sent To:</label>
-              <select
-                id="permit-receiver"
-                name="permit-receiver"
-                value={receiver}
-                onChange={(e) => setReceiver(e.target.value)}
-                className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-foreground focus:outline-none focus:border-indigo-500/50 transition-colors"
+          <div className="p-4 sm:p-6 pt-0 sm:pt-0 shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+              <div className="space-y-1.5 flex-1 min-w-0">
+                <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest leading-none">Sent To</label>
+                <AnimatedSelect
+                  value={receiver}
+                  onChange={setReceiver}
+                  options={
+                    admins.length > 0
+                      ? admins.map(a => ({ value: a.name, label: a.name }))
+                      : [{ value: 'Admin', label: 'Admin' }]
+                  }
+                  placeholder="Select recipient"
+                />
+              </div>
+              <button
+                type="submit"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 sm:py-[11px] bg-foreground text-background rounded-xl text-sm font-bold hover:bg-foreground/90 transition-colors"
               >
-                {admins.length > 0 ? (
-                  admins.map(admin => (
-                    <option key={admin.id} value={admin.name}>{admin.name}</option>
-                  ))
-                ) : (
-                  <option value="Admin">Admin</option>
-                )}
-              </select>
+                <Send className="w-4 h-4" />
+                <span>Send Permit Request</span>
+              </button>
             </div>
-            <button
-              type="submit"
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-foreground text-background rounded-xl text-sm font-bold hover:bg-foreground/90 transition-colors"
-            >
-              <Send className="w-4 h-4" />
-              <span>Send Permit Request</span>
-            </button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </>
+    )}
+    </AnimatePresence>
   );
 };
